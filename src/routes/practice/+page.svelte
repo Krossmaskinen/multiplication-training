@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { generateMultiplication, type MultiplicationProblem } from '$lib/types';
+	import { generateMultiplication, generateMultiplicationForTable, type MultiplicationProblem } from '$lib/types';
 
 	let currentProblem = $state(generateMultiplication(10));
 	let userAnswer = $state('');
@@ -7,6 +7,7 @@
 	let showSuccessBanner = $state(false);
 	let showHistory = $state(false);
 	let practiceFailedOnly = $state(false);
+	let selectedTable = $state<number | null>(null);
 	let isChecking = $state(false);
 	let inputElement: HTMLInputElement | null = $state(null);
 	let failedProblems = $derived(
@@ -55,6 +56,8 @@
 				answer: randomFailed.answer,
 				timestamp: Date.now()
 			};
+		} else if (selectedTable !== null) {
+			currentProblem = generateMultiplicationForTable(selectedTable, 10);
 		} else {
 			currentProblem = generateMultiplication(10);
 		}
@@ -79,16 +82,51 @@
 					<a href="/" class="btn btn-sm btn-ghost">Hem</a>
 				</div>
 
-				<div class="form-control mb-3 sm:mb-4">
-					<label class="label cursor-pointer justify-start gap-3 sm:gap-4 py-2">
-						<span class="label-text text-sm sm:text-base">Öva endast felaktiga</span>
-						<input
-							type="checkbox"
-							class="toggle toggle-primary"
-							bind:checked={practiceFailedOnly}
-							disabled={failedProblems.length === 0}
-						/>
-					</label>
+				<div class="space-y-3 sm:space-y-4 mb-3 sm:mb-4">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text text-sm sm:text-base font-semibold">Öva tabell</span>
+						</label>
+						<select
+							class="select select-bordered w-full text-sm sm:text-base"
+							value={selectedTable?.toString() ?? ''}
+							onchange={(e) => {
+								const value = (e.currentTarget as HTMLSelectElement).value;
+								if (value === '') {
+									selectedTable = null;
+								} else {
+									selectedTable = parseInt(value);
+								}
+								if (selectedTable !== null) {
+									currentProblem = generateMultiplicationForTable(selectedTable, 10);
+								} else {
+									currentProblem = generateMultiplication(10);
+								}
+								userAnswer = '';
+								isChecking = false;
+								showSuccessBanner = false;
+								setTimeout(() => {
+									inputElement?.focus();
+								}, 100);
+							}}
+						>
+							<option value="">Alla tabeller</option>
+							{#each Array(10) as _, i}
+								<option value={(i + 1).toString()}>{i + 1}:an tabellen</option>
+							{/each}
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label cursor-pointer justify-start gap-3 sm:gap-4 py-2">
+							<span class="label-text text-sm sm:text-base">Öva endast felaktiga</span>
+							<input
+								type="checkbox"
+								class="toggle toggle-primary"
+								bind:checked={practiceFailedOnly}
+								disabled={failedProblems.length === 0}
+							/>
+						</label>
+					</div>
 				</div>
 
 				<div class="text-center py-3 sm:py-6 md:py-8">

@@ -18,3 +18,13 @@ export function generateMultiplication(max: number = 10): MultiplicationProblem 
 	};
 }
 
+export function generateMultiplicationForTable(table: number, max: number = 10): MultiplicationProblem {
+	const num2 = Math.floor(Math.random() * max) + 1;
+	return {
+		num1: table,
+		num2,
+		answer: table * num2,
+		timestamp: Date.now()
+	};
+}
+
