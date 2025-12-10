@@ -1,8 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { generateMultiplication, generateMultiplicationForTable, type MultiplicationProblem } from '$lib/types';
-
-	const STORAGE_KEY = 'multiplication-history';
+	import { generateMultiplication, type MultiplicationProblem } from '$lib/types';
 
 	let currentProblem = $state(generateMultiplication(10));
 	let userAnswer = $state('');
@@ -10,10 +7,8 @@
 	let showSuccessBanner = $state(false);
 	let showHistory = $state(false);
 	let practiceFailedOnly = $state(false);
-	let selectedTable = $state<number | null>(null);
 	let isChecking = $state(false);
 	let inputElement: HTMLInputElement | null = $state(null);
-	let isInitialized = $state(false);
 	let failedProblems = $derived(
 		history.filter((p) => p.isCorrect === false)
 	);
@@ -21,51 +16,6 @@
 		history.length > 0 ? history[history.length - 1] : null
 	);
 	let showingResult = $derived(isChecking && lastResult !== null);
-
-	function loadHistory() {
-		if (typeof window !== 'undefined') {
-			try {
-				const stored = localStorage.getItem(STORAGE_KEY);
-				if (stored) {
-					history = JSON.parse(stored);
-				}
-			} catch (e) {
-				console.error('Failed to load history from localStorage', e);
-			}
-		}
-	}
-
-	function saveHistory() {
-		if (typeof window !== 'undefined') {
-			try {
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-			} catch (e) {
-				console.error('Failed to save history to localStorage', e);
-			}
-		}
-	}
-
-	function clearHistory() {
-		history = [];
-		if (typeof window !== 'undefined') {
-			try {
-				localStorage.removeItem(STORAGE_KEY);
-			} catch (e) {
-				console.error('Failed to clear history from localStorage', e);
-			}
-		}
-	}
-
-	onMount(() => {
-		loadHistory();
-		isInitialized = true;
-	});
-
-	$effect(() => {
-		if (isInitialized) {
-			saveHistory();
-		}
-	});
 
 	function checkAnswer() {
 		const answer = parseInt(userAnswer);
@@ -89,8 +39,6 @@
 				nextProblem();
 				showSuccessBanner = false;
 			}, 2000);
-		} else {
-			showSuccessBanner = false;
 		}
 	}
 
@@ -105,8 +53,6 @@
 				answer: randomFailed.answer,
 				timestamp: Date.now()
 			};
-		} else if (selectedTable !== null) {
-			currentProblem = generateMultiplicationForTable(selectedTable, 10);
 		} else {
 			currentProblem = generateMultiplication(10);
 		}
@@ -122,72 +68,37 @@
 	}
 </script>
 
-<div class="min-h-screen bg-base-200 p-2 sm:p-4 pb-6 sm:pb-8">
+<div class="min-h-screen bg-base-200 p-4 pb-8">
 	<div class="max-w-2xl mx-auto">
-		<div class="card bg-base-100 shadow-xl mb-3 sm:mb-4">
-			<div class="card-body p-4 sm:p-6">
-				<div class="flex justify-between items-center mb-3 sm:mb-4">
-					<h1 class="card-title text-xl sm:text-2xl">Öva multiplikation</h1>
+		<div class="card bg-base-100 shadow-xl mb-4">
+			<div class="card-body">
+				<div class="flex justify-between items-center mb-4">
+					<h1 class="card-title text-2xl">Öva multiplikation</h1>
 					<a href="/" class="btn btn-sm btn-ghost">Hem</a>
 				</div>
 
-				<div class="space-y-3 sm:space-y-4 mb-3 sm:mb-4">
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text text-sm sm:text-base font-semibold">Öva tabell</span>
-						</label>
-						<select
-							class="select select-bordered w-full text-sm sm:text-base"
-							value={selectedTable?.toString() ?? ''}
-							onchange={(e) => {
-								const value = (e.currentTarget as HTMLSelectElement).value;
-								if (value === '') {
-									selectedTable = null;
-								} else {
-									selectedTable = parseInt(value);
-								}
-								if (selectedTable !== null) {
-									currentProblem = generateMultiplicationForTable(selectedTable, 10);
-								} else {
-									currentProblem = generateMultiplication(10);
-								}
-								userAnswer = '';
-								isChecking = false;
-								showSuccessBanner = false;
-								setTimeout(() => {
-									inputElement?.focus();
-								}, 100);
-							}}
-						>
-							<option value="">Alla tabeller</option>
-							{#each Array(10) as _, i}
-								<option value={(i + 1).toString()}>{i + 1}:an tabellen</option>
-							{/each}
-						</select>
-					</div>
-					<div class="form-control">
-						<label class="label cursor-pointer justify-start gap-3 sm:gap-4 py-2">
-							<span class="label-text text-sm sm:text-base">Öva endast felaktiga</span>
-							<input
-								type="checkbox"
-								class="toggle toggle-primary"
-								bind:checked={practiceFailedOnly}
-								disabled={failedProblems.length === 0}
-							/>
-						</label>
-					</div>
+				<div class="form-control mb-4">
+					<label class="label cursor-pointer justify-start gap-4">
+						<span class="label-text">Öva endast felaktiga</span>
+						<input
+							type="checkbox"
+							class="toggle bg-blue-500 checked:bg-blue-600"
+							bind:checked={practiceFailedOnly}
+							disabled={failedProblems.length === 0}
+						/>
+					</label>
 				</div>
 
-				<div class="text-center py-3 sm:py-6 md:py-8">
-					<div class="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 md:mb-8">
+				<div class="text-center py-4 md:py-8">
+					<div class="text-4xl md:text-6xl font-bold mb-6 md:mb-8">
 						{currentProblem.num1} × {currentProblem.num2} = ?
 					</div>
 
-					<div class="form-control w-full max-w-xs mx-auto mb-4 sm:mb-6">
+					<div class="form-control w-full max-w-xs mx-auto">
 						<input
 							type="number"
 							placeholder="Ditt svar"
-							class="input input-bordered input-lg text-center text-lg sm:text-xl md:text-2xl w-full"
+							class="input input-bordered input-lg text-center text-xl md:text-2xl"
 							bind:value={userAnswer}
 							bind:this={inputElement}
 							onkeypress={handleKeyPress}
@@ -196,13 +107,13 @@
 						/>
 					</div>
 
-					<div class="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
+					<div class="mt-6">
 						{#if lastResult}
 							{#if lastResult.isCorrect === true && showSuccessBanner}
 								<div class="alert alert-success">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
-										class="stroke-current shrink-0 h-5 w-5 sm:h-6 sm:w-6"
+										class="stroke-current shrink-0 h-6 w-6"
 										fill="none"
 										viewBox="0 0 24 24"
 									>
@@ -213,41 +124,35 @@
 											d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 										/>
 									</svg>
-									<span class="text-sm sm:text-base">Rätt!</span>
+									<span>Rätt!</span>
 								</div>
 							{:else if lastResult.isCorrect === false}
 								<div class="alert alert-error">
-									<span class="text-base sm:text-xl">
-										Fel! Rätt svar är <strong class="text-white font-bold">{lastResult.answer}</strong>
+									<span class="text-xl">
+										Fel! Rätt svar är <strong class="text-red-600">{lastResult.answer}</strong>
 									</span>
 								</div>
-							{/if}
-						{/if}
-						
-						<div class="flex gap-3 sm:gap-4 justify-center">
-							{#if !lastResult || !showingResult}
-								<button class="btn btn-primary text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 min-h-12 sm:min-h-14" onclick={checkAnswer} disabled={isChecking || showingResult}>
-									Kontrollera
-								</button>
-							{/if}
-							{#if lastResult}
-								<button class="btn btn-primary text-base sm:text-lg px-8 sm:px-12 h-12 sm:h-14 min-h-12 sm:min-h-14" onclick={nextProblem}>
+								<button class="btn bg-blue-600 hover:bg-blue-700 text-white border-0 btn-lg mt-4" onclick={nextProblem}>
 									Nästa
 								</button>
 							{/if}
-						</div>
+						{:else}
+							<button class="btn bg-blue-600 hover:bg-blue-700 text-white border-0 btn-lg disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:opacity-50" onclick={checkAnswer} disabled={isChecking}>
+								Kontrollera
+							</button>
+						{/if}
 					</div>
 				</div>
 			</div>
 		</div>
 
 		<div class="card bg-base-100 shadow-xl">
-			<div class="card-body p-4 sm:p-6">
+			<div class="card-body">
 				<button
-					class="btn btn-ghost justify-between w-full py-3 sm:py-4"
+					class="btn btn-ghost justify-between w-full"
 					onclick={() => (showHistory = !showHistory)}
 				>
-					<span class="font-bold text-sm sm:text-base">Historik ({history.length})</span>
+					<span class="font-bold">Historik ({history.length})</span>
 					<svg
 						class="w-5 h-5 transition-transform {showHistory ? 'rotate-180' : ''}"
 						fill="none"
@@ -264,80 +169,60 @@
 				</button>
 
 				{#if showHistory}
-					<div class="divider my-2"></div>
-					{#if history.length > 0}
-						<div class="mb-3 flex justify-end">
-							<button
-								class="btn btn-sm btn-error btn-outline"
-								onclick={() => {
-									if (confirm('Är du säker på att du vill radera all historik?')) {
-										clearHistory();
-									}
-								}}
-							>
-								Rensa historik
-							</button>
-						</div>
-					{/if}
+					<div class="divider"></div>
 					<div class="space-y-2 max-h-96 overflow-y-auto">
-						{#if history.length === 0}
-							<div class="text-center text-sm sm:text-base text-base-content/60 py-4">
-								Ingen historik ännu
-							</div>
-						{:else}
-							{#each history.toReversed() as problem}
-								<div
-									class="flex justify-between items-center p-2 sm:p-3 rounded-lg {problem.isCorrect
-										? 'bg-success/20'
-										: 'bg-error/20'}"
-								>
-									<div class="flex-1 text-sm sm:text-base">
-										<span class="font-semibold">
-											{problem.num1} × {problem.num2} =
-										</span>
-										<span
-											class="ml-2 {problem.isCorrect ? 'text-success' : 'text-error'}"
-										>
-											{problem.userAnswer}
-										</span>
-										{#if !problem.isCorrect}
-											<span class="ml-2 text-error">(Rätt: {problem.answer})</span>
-										{/if}
-									</div>
-									<div>
-										{#if problem.isCorrect}
-											<svg
-												class="w-5 h-5 sm:w-6 sm:h-6 text-success"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M5 13l4 4L19 7"
-												/>
-											</svg>
-										{:else}
-											<svg
-												class="w-5 h-5 sm:w-6 sm:h-6 text-error"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
-												/>
-											</svg>
-										{/if}
-									</div>
+						{#each history.toReversed() as problem}
+							<div
+								class="flex justify-between items-center p-3 rounded-lg {problem.isCorrect
+									? 'bg-success/20'
+									: 'bg-error/20'}"
+							>
+								<div class="flex-1">
+									<span class="font-semibold">
+										{problem.num1} × {problem.num2} =
+									</span>
+									<span
+										class="ml-2 {problem.isCorrect ? 'text-success' : 'text-error'}"
+									>
+										{problem.userAnswer}
+									</span>
+									{#if !problem.isCorrect}
+										<span class="ml-2 text-error">(Rätt: {problem.answer})</span>
+									{/if}
 								</div>
-							{/each}
-						{/if}
+								<div>
+									{#if problem.isCorrect}
+										<svg
+											class="w-6 h-6 text-success"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M5 13l4 4L19 7"
+											/>
+										</svg>
+									{:else}
+										<svg
+											class="w-6 h-6 text-error"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M6 18L18 6M6 6l12 12"
+											/>
+										</svg>
+									{/if}
+								</div>
+							</div>
+						{/each}
 					</div>
 				{/if}
 			</div>

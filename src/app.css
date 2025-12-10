@@ -2,3 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+.toggle.bg-blue-500 {
+	background-color: rgb(59 130 246) !important;
+}
+
+.toggle.checked\:bg-blue-600:checked {
+	background-color: rgb(37 99 235) !important;
+}
+
+.btn.bg-blue-600 {
+	background-color: rgb(37 99 235) !important;
+}
+
+.btn.bg-blue-600:hover {
+	background-color: rgb(29 78 216) !important;
+}
+
