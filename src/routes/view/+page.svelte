@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { serviceContainer } from '$lib/services/ServiceContainer';
 	import { PracticeSession } from '$lib/composables/usePracticeSession';
+	import { selectedTableStore } from '$lib/stores/selectedTableStore';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import TableSelector from '$lib/components/TableSelector.svelte';
 	import ProblemDisplay from '$lib/components/ProblemDisplay.svelte';
@@ -10,6 +12,8 @@
 
 	const problemGenerator = serviceContainer.getProblemGenerator();
 	const historyStorage = serviceContainer.getHistoryStorage();
+	
+	let storedTable = $state<number | null>(null);
 	const session = new PracticeSession(
 		problemGenerator,
 		historyStorage,
@@ -18,10 +22,20 @@
 
 	let currentProblem = $state(session.getCurrentProblem());
 	let history = $state<MultiplicationProblem[]>([]);
-	let selectedTable = $state<number | null>(session.getSelectedTable());
+	let selectedTable = $state<number | null>(null);
+
+	onMount(() => {
+		storedTable = selectedTableStore.load();
+		if (storedTable !== null) {
+			selectedTable = storedTable;
+			session.setSelectedTable(storedTable);
+			currentProblem = session.getCurrentProblem();
+		}
+	});
 
 	function handleTableChange(table: number | null) {
 		selectedTable = table;
+		selectedTableStore.set(table);
 		session.setSelectedTable(table);
 		currentProblem = session.getCurrentProblem();
 	}

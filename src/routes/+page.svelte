@@ -1,5 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { selectedTableStore } from '$lib/stores/selectedTableStore';
+
+	onMount(() => {
+		selectedTableStore.clear();
+	});
 </script>
 
 <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">

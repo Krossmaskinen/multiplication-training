@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { serviceContainer } from '$lib/services/ServiceContainer';
 	import { PracticeSession } from '$lib/composables/usePracticeSession';
+	import { selectedTableStore } from '$lib/stores/selectedTableStore';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import TableSelector from '$lib/components/TableSelector.svelte';
 	import PracticeFailedToggle from '$lib/components/PracticeFailedToggle.svelte';
@@ -14,6 +15,8 @@
 
 	const problemGenerator = serviceContainer.getProblemGenerator();
 	const historyStorage = serviceContainer.getHistoryStorage();
+	
+	let storedTable = $state<number | null>(null);
 	const session = new PracticeSession(
 		problemGenerator,
 		historyStorage,
@@ -25,7 +28,7 @@
 	let history = $state<MultiplicationProblem[]>([]);
 	let showResultBanner = $state(false);
 	let isChecking = $state(false);
-	let selectedTable = $state<number | null>(session.getSelectedTable());
+	let selectedTable = $state<number | null>(null);
 	let practiceFailedOnly = $state(session.getPracticeFailedOnly());
 
 	let failedProblems = $derived(historyStorage.getFailed());
@@ -36,10 +39,17 @@
 
 	onMount(() => {
 		history = historyStorage.getAll();
+		storedTable = selectedTableStore.load();
+		if (storedTable !== null) {
+			selectedTable = storedTable;
+			session.setSelectedTable(storedTable);
+			currentProblem = session.getCurrentProblem();
+		}
 	});
 
 	function handleTableChange(table: number | null) {
 		selectedTable = table;
+		selectedTableStore.set(table);
 		session.setSelectedTable(table);
 		currentProblem = session.getCurrentProblem();
 		userAnswer = '';
