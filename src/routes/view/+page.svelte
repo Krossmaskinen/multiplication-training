@@ -1,13 +1,18 @@
 <script lang="ts">
-	import { generateMultiplication, type MultiplicationProblem } from '$lib/types';
+	import { generateMultiplication, generateMultiplicationForTable, type MultiplicationProblem } from '$lib/types';
 
 	let currentProblem = $state(generateMultiplication(10));
 	let history = $state<MultiplicationProblem[]>([]);
 	let showHistory = $state(false);
+	let selectedTable = $state<number | null>(null);
 
 	function nextProblem() {
 		history = [...history, currentProblem];
-		currentProblem = generateMultiplication(10);
+		if (selectedTable !== null) {
+			currentProblem = generateMultiplicationForTable(selectedTable, 10);
+		} else {
+			currentProblem = generateMultiplication(10);
+		}
 	}
 </script>
 
@@ -20,12 +25,40 @@
 					<a href="/" class="btn btn-sm btn-ghost">Hem</a>
 				</div>
 
+				<div class="form-control mb-4">
+					<label class="label">
+						<span class="label-text font-semibold">Öva tabell</span>
+					</label>
+					<select
+						class="select select-bordered w-full"
+						value={selectedTable?.toString() ?? ''}
+						onchange={(e) => {
+							const value = (e.currentTarget as HTMLSelectElement).value;
+							if (value === '') {
+								selectedTable = null;
+							} else {
+								selectedTable = parseInt(value);
+							}
+							if (selectedTable !== null) {
+								currentProblem = generateMultiplicationForTable(selectedTable, 10);
+							} else {
+								currentProblem = generateMultiplication(10);
+							}
+						}}
+					>
+						<option value="">Alla tabeller</option>
+						{#each Array(10) as _, i}
+							<option value={(i + 1).toString()}>{i + 1}:an tabellen</option>
+						{/each}
+					</select>
+				</div>
+
 				<div class="text-center py-4 md:py-8">
 					<div class="text-4xl md:text-6xl font-bold mb-6 md:mb-8">
 						{currentProblem.num1} × {currentProblem.num2} = {currentProblem.answer}
 					</div>
 
-					<button class="btn btn-primary btn-lg" onclick={nextProblem}>
+					<button class="btn bg-blue-600 hover:bg-blue-700 text-white btn-lg" onclick={nextProblem}>
 						Nästa
 					</button>
 				</div>
