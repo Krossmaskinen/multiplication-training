@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { generateMultiplication, generateMultiplicationForTable, type MultiplicationProblem } from '$lib/types';
+
+	const STORAGE_KEY = 'multiplication-history';
 
 	let currentProblem = $state(generateMultiplication(10));
 	let userAnswer = $state('');
@@ -10,6 +13,7 @@
 	let selectedTable = $state<number | null>(null);
 	let isChecking = $state(false);
 	let inputElement: HTMLInputElement | null = $state(null);
+	let isInitialized = $state(false);
 	let failedProblems = $derived(
 		history.filter((p) => p.isCorrect === false)
 	);
@@ -17,6 +21,51 @@
 		history.length > 0 ? history[history.length - 1] : null
 	);
 	let showingResult = $derived(isChecking && lastResult !== null);
+
+	function loadHistory() {
+		if (typeof window !== 'undefined') {
+			try {
+				const stored = localStorage.getItem(STORAGE_KEY);
+				if (stored) {
+					history = JSON.parse(stored);
+				}
+			} catch (e) {
+				console.error('Failed to load history from localStorage', e);
+			}
+		}
+	}
+
+	function saveHistory() {
+		if (typeof window !== 'undefined') {
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+			} catch (e) {
+				console.error('Failed to save history to localStorage', e);
+			}
+		}
+	}
+
+	function clearHistory() {
+		history = [];
+		if (typeof window !== 'undefined') {
+			try {
+				localStorage.removeItem(STORAGE_KEY);
+			} catch (e) {
+				console.error('Failed to clear history from localStorage', e);
+			}
+		}
+	}
+
+	onMount(() => {
+		loadHistory();
+		isInitialized = true;
+	});
+
+	$effect(() => {
+		if (isInitialized) {
+			saveHistory();
+		}
+	});
 
 	function checkAnswer() {
 		const answer = parseInt(userAnswer);
@@ -216,59 +265,79 @@
 
 				{#if showHistory}
 					<div class="divider my-2"></div>
-					<div class="space-y-2 max-h-96 overflow-y-auto">
-						{#each history.toReversed() as problem}
-							<div
-								class="flex justify-between items-center p-2 sm:p-3 rounded-lg {problem.isCorrect
-									? 'bg-success/20'
-									: 'bg-error/20'}"
+					{#if history.length > 0}
+						<div class="mb-3 flex justify-end">
+							<button
+								class="btn btn-sm btn-error btn-outline"
+								onclick={() => {
+									if (confirm('Är du säker på att du vill radera all historik?')) {
+										clearHistory();
+									}
+								}}
 							>
-								<div class="flex-1 text-sm sm:text-base">
-									<span class="font-semibold">
-										{problem.num1} × {problem.num2} =
-									</span>
-									<span
-										class="ml-2 {problem.isCorrect ? 'text-success' : 'text-error'}"
-									>
-										{problem.userAnswer}
-									</span>
-									{#if !problem.isCorrect}
-										<span class="ml-2 text-error">(Rätt: {problem.answer})</span>
-									{/if}
-								</div>
-								<div>
-									{#if problem.isCorrect}
-										<svg
-											class="w-5 h-5 sm:w-6 sm:h-6 text-success"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M5 13l4 4L19 7"
-											/>
-										</svg>
-									{:else}
-										<svg
-											class="w-5 h-5 sm:w-6 sm:h-6 text-error"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M6 18L18 6M6 6l12 12"
-											/>
-										</svg>
-									{/if}
-								</div>
+								Rensa historik
+							</button>
+						</div>
+					{/if}
+					<div class="space-y-2 max-h-96 overflow-y-auto">
+						{#if history.length === 0}
+							<div class="text-center text-sm sm:text-base text-base-content/60 py-4">
+								Ingen historik ännu
 							</div>
-						{/each}
+						{:else}
+							{#each history.toReversed() as problem}
+								<div
+									class="flex justify-between items-center p-2 sm:p-3 rounded-lg {problem.isCorrect
+										? 'bg-success/20'
+										: 'bg-error/20'}"
+								>
+									<div class="flex-1 text-sm sm:text-base">
+										<span class="font-semibold">
+											{problem.num1} × {problem.num2} =
+										</span>
+										<span
+											class="ml-2 {problem.isCorrect ? 'text-success' : 'text-error'}"
+										>
+											{problem.userAnswer}
+										</span>
+										{#if !problem.isCorrect}
+											<span class="ml-2 text-error">(Rätt: {problem.answer})</span>
+										{/if}
+									</div>
+									<div>
+										{#if problem.isCorrect}
+											<svg
+												class="w-5 h-5 sm:w-6 sm:h-6 text-success"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M5 13l4 4L19 7"
+												/>
+											</svg>
+										{:else}
+											<svg
+												class="w-5 h-5 sm:w-6 sm:h-6 text-error"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M6 18L18 6M6 6l12 12"
+												/>
+											</svg>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						{/if}
 					</div>
 				{/if}
 			</div>
