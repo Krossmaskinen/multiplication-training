@@ -4,6 +4,7 @@
 	let currentProblem = $state(generateMultiplication(10));
 	let userAnswer = $state('');
 	let history = $state<MultiplicationProblem[]>([]);
+	let showSuccessBanner = $state(false);
 	let showHistory = $state(false);
 	let practiceFailedOnly = $state(false);
 	let isChecking = $state(false);
@@ -27,11 +28,16 @@
 			isCorrect: answer === currentProblem.answer
 		};
 
+		if (problem.isCorrect) {
+			showSuccessBanner = true;
+		}
+
 		history = [...history, problem];
 
 		if (problem.isCorrect) {
 			setTimeout(() => {
 				nextProblem();
+				showSuccessBanner = false;
 			}, 2000);
 		}
 	}
@@ -103,7 +109,7 @@
 
 					<div class="mt-6">
 						{#if lastResult}
-							{#if lastResult.isCorrect === true}
+							{#if lastResult.isCorrect === true && showSuccessBanner}
 								<div class="alert alert-success">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
