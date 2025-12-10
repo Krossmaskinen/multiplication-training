@@ -3,13 +3,13 @@
 
 	interface Props {
 		result: MultiplicationProblem;
-		showSuccessBanner?: boolean;
+		showResultBanner?: boolean;
 	}
 
-	let { result, showSuccessBanner = false }: Props = $props();
+	let { result, showResultBanner = false }: Props = $props();
 </script>
 
-{#if result.isCorrect === true && showSuccessBanner}
+{#if result.isCorrect === true && showResultBanner}
 	<div class="alert alert-success">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +26,7 @@
 		</svg>
 		<span>Rätt!</span>
 	</div>
-{:else if result.isCorrect === false}
+{:else if result.isCorrect === false && showResultBanner}
 	<div class="alert alert-error">
 		<span class="text-xl">
 			Fel! Rätt svar är <strong class="text-red-600">{result.answer}</strong>

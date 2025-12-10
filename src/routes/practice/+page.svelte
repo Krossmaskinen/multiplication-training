@@ -23,7 +23,7 @@
 	let currentProblem = $state(session.getCurrentProblem());
 	let userAnswer = $state('');
 	let history = $state<MultiplicationProblem[]>([]);
-	let showSuccessBanner = $state(false);
+	let showResultBanner = $state(false);
 	let isChecking = $state(false);
 	let selectedTable = $state<number | null>(session.getSelectedTable());
 	let practiceFailedOnly = $state(session.getPracticeFailedOnly());
@@ -44,7 +44,7 @@
 		currentProblem = session.getCurrentProblem();
 		userAnswer = '';
 		isChecking = false;
-		showSuccessBanner = false;
+		showResultBanner = false;
 	}
 
 	function handlePracticeFailedChange(checked: boolean) {
@@ -54,7 +54,8 @@
 		currentProblem = session.getCurrentProblem();
 		userAnswer = '';
 		isChecking = false;
-		showSuccessBanner = false;
+		showResultBanner = false;
+		history = historyStorage.getAll();
 	}
 
 	function checkAnswer() {
@@ -64,9 +65,7 @@
 		isChecking = true;
 		const problem = session.checkAnswer(answer);
 
-		if (problem.isCorrect) {
-			showSuccessBanner = true;
-		}
+		showResultBanner = true;
 
 		history = [...history, problem];
 		history = historyStorage.getAll();
@@ -74,7 +73,7 @@
 		if (problem.isCorrect) {
 			setTimeout(() => {
 				nextProblem();
-				showSuccessBanner = false;
+				showResultBanner = false;
 			}, 2000);
 		}
 	}
@@ -123,8 +122,8 @@
 					/>
 
 					<div class="mt-6">
-						{#if lastResult}
-							<ResultAlert result={lastResult} showSuccessBanner={showSuccessBanner} />
+						{#if showingResult && lastResult}
+							<ResultAlert result={lastResult} showResultBanner={showResultBanner} />
 							{#if lastResult.isCorrect === false}
 								<ActionButton
 									label="Nästa"
