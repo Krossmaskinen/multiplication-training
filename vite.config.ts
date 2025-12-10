@@ -8,7 +8,7 @@ export default defineConfig({
 		SvelteKitPWA({
 			srcDir: 'src',
 			mode: 'production',
-			strategies: 'injectManifest',
+			strategies: 'generateSW',
 			scope: '/',
 			base: '/',
 			manifest: {
@@ -21,27 +21,54 @@ export default defineConfig({
 				orientation: 'portrait',
 				scope: '/',
 				start_url: '/',
+				id: '/',
 				icons: [
 					{
 						src: '/icon-192.png',
 						sizes: '192x192',
 						type: 'image/png',
-						purpose: 'any maskable'
+						purpose: 'any'
+					},
+					{
+						src: '/icon-192.png',
+						sizes: '192x192',
+						type: 'image/png',
+						purpose: 'maskable'
 					},
 					{
 						src: '/icon-512.png',
 						sizes: '512x512',
 						type: 'image/png',
-						purpose: 'any maskable'
+						purpose: 'any'
+					},
+					{
+						src: '/icon-512.png',
+						sizes: '512x512',
+						type: 'image/png',
+						purpose: 'maskable'
 					}
 				]
 			},
-			injectManifest: {
-				globPatterns: ['**/*.{js,css,html,svg,png,ico,webp,woff,woff2}']
+			workbox: {
+				globPatterns: ['**/*.{js,css,html,svg,png,ico,webp,woff,woff2}'],
+				runtimeCaching: [
+					{
+						urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'unsplash-images',
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+							}
+						}
+					}
+				]
 			},
 			devOptions: {
-				enabled: false,
-				type: 'module'
+				enabled: true,
+				type: 'module',
+				navigateFallback: '/'
 			}
 		})
 	]
