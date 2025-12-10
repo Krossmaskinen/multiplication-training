@@ -12,9 +12,16 @@
 
 .btn.bg-blue-600 {
 	background-color: rgb(37 99 235) !important;
+	border-color: rgb(37 99 235) !important;
 }
 
 .btn.bg-blue-600:hover {
 	background-color: rgb(29 78 216) !important;
+	border-color: rgb(29 78 216) !important;
+}
+
+.btn.bg-blue-600.btn-lg {
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
 }
 

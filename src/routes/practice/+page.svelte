@@ -132,12 +132,12 @@
 										Fel! Rätt svar är <strong class="text-red-600">{lastResult.answer}</strong>
 									</span>
 								</div>
-								<button class="btn bg-blue-600 hover:bg-blue-700 text-white border-0 btn-lg mt-4" onclick={nextProblem}>
+								<button class="btn bg-blue-600 hover:bg-blue-700 text-white btn-lg mt-4" onclick={nextProblem}>
 									Nästa
 								</button>
 							{/if}
 						{:else}
-							<button class="btn bg-blue-600 hover:bg-blue-700 text-white border-0 btn-lg disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:opacity-50" onclick={checkAnswer} disabled={isChecking}>
+							<button class="btn bg-blue-600 hover:bg-blue-700 text-white btn-lg disabled:bg-gray-400 disabled:hover:bg-gray-400 disabled:opacity-50" onclick={checkAnswer} disabled={isChecking}>
 								Kontrollera
 							</button>
 						{/if}
