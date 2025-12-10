@@ -50,6 +50,11 @@
 	function handlePracticeFailedChange(checked: boolean) {
 		practiceFailedOnly = checked;
 		session.setPracticeFailedOnly(checked);
+		session.generateNextProblem();
+		currentProblem = session.getCurrentProblem();
+		userAnswer = '';
+		isChecking = false;
+		showSuccessBanner = false;
 	}
 
 	function checkAnswer() {
